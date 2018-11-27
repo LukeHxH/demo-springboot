@@ -6,10 +6,7 @@ import com.example.lukehxh.demo.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
@@ -32,7 +29,7 @@ public class PersonEndpoint {
 
     @RequestMapping(method = RequestMethod.GET, path = "/{id}")
     public ResponseEntity<?> getPersonById(@PathVariable("id") int id) {
-        
+
         Person person = new Person();
         person.setId(id);
 
@@ -44,6 +41,13 @@ public class PersonEndpoint {
         } else {
             return new ResponseEntity<>(Person.getPersonList().get(index), HttpStatus.OK);
         }
+    }
+
+    @RequestMapping(method = RequestMethod.POST)
+    public ResponseEntity<?> save(@RequestBody Person person) {
+        Person.getPersonList().add(person);
+
+        return new ResponseEntity<>(person, HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.GET, path = "/data")
