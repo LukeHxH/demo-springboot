@@ -21,13 +21,13 @@ public class PersonEndpoint {
         this.dateUtil = dateUtil;
     }
 
-    @RequestMapping(method = RequestMethod.GET)
+    @GetMapping
     public ResponseEntity<?> listAll() {
         return new ResponseEntity<>(Person.getPersonList(),
                 HttpStatus.OK);
     }
 
-    @RequestMapping(method = RequestMethod.GET, path = "/{id}")
+    @GetMapping(path = "/{id}")
     public ResponseEntity<?> getPersonById(@PathVariable("id") int id) {
 
         Person person = new Person();
@@ -43,11 +43,26 @@ public class PersonEndpoint {
         }
     }
 
-    @RequestMapping(method = RequestMethod.POST)
+    @PostMapping
     public ResponseEntity<?> save(@RequestBody Person person) {
         Person.getPersonList().add(person);
 
         return new ResponseEntity<>(person, HttpStatus.OK);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> delete(@RequestBody Person person) {
+        Person.getPersonList().remove(person);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PutMapping
+    public ResponseEntity<?> update(@RequestBody Person person) {
+        Person.getPersonList().remove(person);
+        Person.getPersonList().add(person);
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.GET, path = "/data")

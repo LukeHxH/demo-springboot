@@ -15,14 +15,14 @@ public class Person {
         personRepository();
     }
 
-    public Person() { }
+    public Person() {}
 
-    public Person(int id, String name) {
+    private Person(int id, String name) {
         this(name);
         this.id = id;
     }
 
-    public Person(String name) {
+    private Person(String name) {
         this.name = name;
     }
 
