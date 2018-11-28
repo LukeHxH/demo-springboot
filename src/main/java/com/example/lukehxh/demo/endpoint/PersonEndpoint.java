@@ -2,6 +2,7 @@ package com.example.lukehxh.demo.endpoint;
 
 import com.example.lukehxh.demo.exceptions.PersonNotFound;
 import com.example.lukehxh.demo.model.Person;
+import com.example.lukehxh.demo.repository.PersonRepository;
 import com.example.lukehxh.demo.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,59 +10,53 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("person")
 public class PersonEndpoint {
 
     private final DateUtil dateUtil;
+    private final PersonRepository personDAO;
 
     @Autowired
-    public PersonEndpoint(DateUtil dateUtil) {
-        this.dateUtil = dateUtil;
+    public PersonEndpoint(DateUtil dateUtil, PersonRepository personDAO) {
+        this.dateUtil = dateUtil; // testing with date
+        this.personDAO = personDAO;
     }
 
     @GetMapping
     public ResponseEntity<?> listAll() {
-        return new ResponseEntity<>(Person.getPersonList(),
-                HttpStatus.OK);
+        return new ResponseEntity<>(this.personDAO.findAll(), HttpStatus.OK);
     }
 
     @GetMapping(path = "/{id}")
-    public ResponseEntity<?> getPersonById(@PathVariable("id") int id) {
+    public ResponseEntity<?> getPersonById(@PathVariable("id") Long id) {
+        Optional<Person> personOptional = this.personDAO.findById(id);
+        Person person = null;
 
-        Person person = new Person();
-        person.setId(id);
+        if (personOptional.isPresent())
+            person = personOptional.get();
 
-        int index = Person.getPersonList().indexOf(person);
-
-        if (index == -1) {
-            return new ResponseEntity<>(new PersonNotFound(),
-                    HttpStatus.NOT_FOUND);
-        } else {
-            return new ResponseEntity<>(Person.getPersonList().get(index), HttpStatus.OK);
-        }
+        return (person == null) ? new ResponseEntity<>(new PersonNotFound(), HttpStatus.NOT_FOUND) :
+                new ResponseEntity<>(person, HttpStatus.OK);
     }
 
     @PostMapping
     public ResponseEntity<?> save(@RequestBody Person person) {
-        Person.getPersonList().add(person);
-
-        return new ResponseEntity<>(person, HttpStatus.OK);
+        return new ResponseEntity<>(this.personDAO.save(person), HttpStatus.OK);
     }
 
-    @DeleteMapping
+    @DeleteMapping()
     public ResponseEntity<?> delete(@RequestBody Person person) {
-        Person.getPersonList().remove(person);
+        this.personDAO.delete(person);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PutMapping
     public ResponseEntity<?> update(@RequestBody Person person) {
-        Person.getPersonList().remove(person);
-        Person.getPersonList().add(person);
-
+        this.personDAO.save(person);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
