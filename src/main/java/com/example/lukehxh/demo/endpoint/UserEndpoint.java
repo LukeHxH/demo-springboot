@@ -3,13 +3,13 @@ package com.example.lukehxh.demo.endpoint;
 import com.example.lukehxh.demo.exceptions.ResourceNotFoundException;
 import com.example.lukehxh.demo.model.User;
 import com.example.lukehxh.demo.repository.UserRepository;
-import com.example.lukehxh.demo.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,12 +17,10 @@ import java.util.Optional;
 @RequestMapping("user")
 public class UserEndpoint {
 
-    private final DateUtil dateUtil;
     private final UserRepository userDAO;
 
     @Autowired
-    public UserEndpoint(DateUtil dateUtil, UserRepository userDAO) {
-        this.dateUtil = dateUtil; // testing with date
+    public UserEndpoint(UserRepository userDAO) {
         this.userDAO = userDAO;
     }
 
@@ -53,12 +51,15 @@ public class UserEndpoint {
     }
 
     @PostMapping
-    public ResponseEntity<?> save(@RequestBody User user) {
+    @Transactional
+    public ResponseEntity<?> save(@Valid @RequestBody User user) {
         return new ResponseEntity<>(this.userDAO.save(user), HttpStatus.CREATED);
     }
 
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<?> delete(@PathVariable("id") Long id) {
+        this.verifyIfUserExists(id);
+
         this.userDAO.deleteById(id);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -70,15 +71,10 @@ public class UserEndpoint {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @RequestMapping(method = RequestMethod.GET, path = "/today")
-    public String dateAccess(){
-        return dateUtil.formateLocalDateTimeToDatabaseStyle(LocalDateTime.now());
-    }
-
     private void verifyIfUserExists(Long id) {
         Optional<User> userOptional = this.userDAO.findById(id);
 
         if (!userOptional.isPresent())
-            throw new ResourceNotFoundException("User not found for ID " + id);
+            throw new ResourceNotFoundException("User not found for ID: " + id);
     }
 }
